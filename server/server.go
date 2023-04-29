@@ -95,14 +95,18 @@ func getDollarQuote() (*DollarQuote, error) {
 }
 
 func insertDollarQuote(db *sql.DB, dollarQuote *DollarQuote) error {
+	contextDB, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
 	sql := "INSERT INTO dollar_quotes(id, code, code_in, name, high, low, var_bid, pct_change, bid, ask, timestamp, create_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	stmt, errorStmt := db.Prepare(sql)
+	stmt, errorStmt := db.PrepareContext(contextDB, sql)
 	if errorStmt != nil {
 		return errorStmt
 	}
 	defer stmt.Close()
 
-	_, errorResult := stmt.Exec(
+	_, errorResult := stmt.ExecContext(
+		contextDB,
 		dollarQuote.Id,
 		dollarQuote.Code,
 		dollarQuote.CodeIn,
