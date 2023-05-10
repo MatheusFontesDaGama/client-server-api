@@ -14,14 +14,14 @@ type DollarQuote struct {
 }
 
 func main() {
-	dollarQuote, error := requestCotacao()
-	if error != nil {
-		panic(error)
+	dollarQuote, errorRequestCotacao := requestCotacao()
+	if errorRequestCotacao != nil {
+		panic(errorRequestCotacao)
 	}
 
-	error = writeQuotationFile(dollarQuote)
-	if error != nil {
-		panic(error)
+	errorWriteFile := writeQuotationFile(dollarQuote)
+	if errorWriteFile != nil {
+		panic(errorWriteFile)
 	}
 }
 
@@ -30,38 +30,38 @@ func requestCotacao() (*DollarQuote, error) {
 	defer cancel()
 
 	url := "http://localhost:8080/cotacao"
-	request, error := http.NewRequestWithContext(context, "GET", url, nil)
-	if error != nil {
-		return nil, error
+	request, errorRequest := http.NewRequestWithContext(context, "GET", url, nil)
+	if errorRequest != nil {
+		return nil, errorRequest
 	}
 
-	response, error := http.DefaultClient.Do(request)
-	if error != nil {
-		return nil, error
+	response, errorResponse := http.DefaultClient.Do(request)
+	if errorResponse != nil {
+		return nil, errorResponse
 	}
 	defer response.Body.Close()
 
-	jsonData, error := io.ReadAll(response.Body)
-	if error != nil {
-		return nil, error
+	jsonData, errorReadAll := io.ReadAll(response.Body)
+	if errorReadAll != nil {
+		return nil, errorReadAll
 	}
 	var dollarQuote DollarQuote
-	error = json.Unmarshal(jsonData, &dollarQuote)
-	if error != nil {
-		return nil, error
+	errorUnmarshal := json.Unmarshal(jsonData, &dollarQuote)
+	if errorUnmarshal != nil {
+		return nil, errorUnmarshal
 	}
 
 	return &dollarQuote, nil
 }
 
 func writeQuotationFile(dollarQuote *DollarQuote) error {
-	file, error := os.Create("cotacao.txt")
-	if error != nil {
-		return error
+	file, errorCreateFile := os.Create("../cotacao.txt")
+	if errorCreateFile != nil {
+		return errorCreateFile
 	}
-	_, err := file.Write([]byte("Dólar:" + dollarQuote.Bid + " \n"))
-	if err != nil {
-		return err
+	_, errorWriteFile := file.Write([]byte("Dólar:" + dollarQuote.Bid + " \n"))
+	if errorWriteFile != nil {
+		return errorWriteFile
 	}
 
 	return nil

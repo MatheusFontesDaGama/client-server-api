@@ -40,23 +40,20 @@ func GetDollarQuoteHandler(response http.ResponseWriter, request *http.Request) 
 	dollarQuote, errorDollarQuote := getDollarQuote()
 	if errorDollarQuote != nil {
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errorDollarQuote)
-		return
+		panic(errorDollarQuote)
 	}
 
-	db, errorDB := sql.Open("sqlite3", "./dollar_quote.db")
+	db, errorDB := sql.Open("sqlite3", "../dollar_quote.db")
 	if errorDB != nil {
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errorDB)
-		return
+		panic(errorDB)
 	}
 	defer db.Close()
 
 	errorInsertDollarQuote := insertDollarQuote(db, dollarQuote)
 	if errorInsertDollarQuote != nil {
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errorInsertDollarQuote)
-		return
+		panic(errorInsertDollarQuote)
 	}
 
 	response.Header().Set("Content-Type", "application/json")
@@ -68,26 +65,26 @@ func getDollarQuote() (*DollarQuote, error) {
 	context, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 	url := "https://economia.awesomeapi.com.br/json/last/USD-BRL"
-	request, error := http.NewRequestWithContext(context, "GET", url, nil)
-	if error != nil {
-		return nil, error
+	request, errorRequest := http.NewRequestWithContext(context, "GET", url, nil)
+	if errorRequest != nil {
+		return nil, errorRequest
 	}
 
 	var dollarQuote USDBRL
-	responseHttp, error := http.DefaultClient.Do(request)
-	if error != nil {
-		return nil, error
+	responseHttp, errorResponse := http.DefaultClient.Do(request)
+	if errorResponse != nil {
+		return nil, errorResponse
 	}
 	defer responseHttp.Body.Close()
 
-	response, error := io.ReadAll(responseHttp.Body)
-	if error != nil {
-		return nil, error
+	response, errorReadAll := io.ReadAll(responseHttp.Body)
+	if errorReadAll != nil {
+		return nil, errorReadAll
 	}
 
-	error = json.Unmarshal(response, &dollarQuote)
-	if error != nil {
-		return nil, error
+	errorUnmarshal := json.Unmarshal(response, &dollarQuote)
+	if errorUnmarshal != nil {
+		return nil, errorUnmarshal
 	}
 
 	dollarQuote.Usdbrl.Id = uuid.New().String()
